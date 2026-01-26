@@ -50,6 +50,15 @@
   }
 }
 
+/* Override MapLibre z-index to prevent it from overlapping nav dropdowns */
+.maplibregl-map {
+  z-index: 0 !important;
+}
+
+.maplibregl-canvas-container {
+  z-index: 0 !important;
+}
+
 @layer base {
   :root {
     --background: 222 47% 11%;
