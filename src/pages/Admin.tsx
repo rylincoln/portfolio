@@ -63,17 +63,19 @@ export default function Admin() {
       const res = await fetch('/api/admin/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secretKey })
+        body: JSON.stringify({ secretKey: secretKey.trim() })
       })
 
       if (res.ok) {
-        sessionStorage.setItem('adminKey', secretKey)
+        sessionStorage.setItem('adminKey', secretKey.trim())
         setIsAuthenticated(true)
-        loadData(secretKey)
+        loadData(secretKey.trim())
       } else {
-        setError('Invalid credentials')
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Invalid credentials')
       }
-    } catch {
+    } catch (err) {
+      console.error('Login error:', err)
       setError('Failed to authenticate')
     }
   }
