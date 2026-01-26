@@ -13,7 +13,7 @@ export default function Hero() {
         }}
       />
 
-      <div className="container relative">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
             Ry Blaisdell

@@ -3,7 +3,7 @@ import SkillsMatrix from '@/features/resume/SkillsMatrix'
 
 export default function Resume() {
   return (
-    <div className="container py-8 space-y-12">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       <section>
         <h1 className="text-3xl font-bold mb-2">Career Timeline</h1>
         <p className="text-muted-foreground mb-6">
