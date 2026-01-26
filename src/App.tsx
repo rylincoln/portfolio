@@ -3,6 +3,7 @@ import Layout from '@/components/layout/Layout'
 import Landing from '@/pages/Landing'
 import Resume from '@/pages/Resume'
 import Contact from '@/pages/Contact'
+import Admin from '@/pages/Admin'
 import MapDemo from '@/pages/demos/Map'
 import DashboardDemo from '@/pages/demos/Dashboard'
 import ExplorerDemo from '@/pages/demos/Explorer'
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/demos/map" element={<MapDemo />} />
           <Route path="/demos/dashboard" element={<DashboardDemo />} />
           <Route path="/demos/explorer" element={<ExplorerDemo />} />
