@@ -60,7 +60,7 @@ export default function AirQualityMap() {
           "></div>
         `
 
-        const marker = new maplibregl.Marker({ element: el })
+        new maplibregl.Marker({ element: el })
           .setLngLat(station.coordinates)
           .addTo(map.current!)
 
