@@ -11,6 +11,19 @@ function getYearFromDate(dateStr: string): number {
   return parseInt(dateStr.split('-')[0], 10)
 }
 
+function getActivePositions(year: number, maxYear: number): CareerPosition[] {
+  return positions.filter(p => {
+    const start = getYearFromDate(p.startDate)
+    const end = p.endDate ? getYearFromDate(p.endDate) : maxYear
+    return year >= start && year <= end
+  })
+}
+
+function getInitialPosition(maxYear: number): CareerPosition | null {
+  const active = getActivePositions(maxYear, maxYear)
+  return active.length > 0 ? active[active.length - 1] : null
+}
+
 export default function MapTimeline() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
@@ -20,7 +33,7 @@ export default function MapTimeline() {
   const maxYear = new Date().getFullYear()
 
   const [selectedYear, setSelectedYear] = useState(maxYear)
-  const [selectedPosition, setSelectedPosition] = useState<CareerPosition | null>(null)
+  const [selectedPosition, setSelectedPosition] = useState<CareerPosition | null>(() => getInitialPosition(maxYear))
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
@@ -47,12 +60,8 @@ export default function MapTimeline() {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
 
-    // Filter positions active in selected year
-    const activePositions = positions.filter(p => {
-      const start = getYearFromDate(p.startDate)
-      const end = p.endDate ? getYearFromDate(p.endDate) : maxYear
-      return selectedYear >= start && selectedYear <= end
-    })
+    // Get positions active in selected year
+    const activePositions = getActivePositions(selectedYear, maxYear)
 
     // Add markers for active positions
     activePositions.forEach(position => {
@@ -74,13 +83,7 @@ export default function MapTimeline() {
 
       markersRef.current.push(marker)
     })
-
-    // Auto-select most recent active position
-    if (activePositions.length > 0 && !selectedPosition) {
-      const mostRecent = activePositions[activePositions.length - 1]
-      setSelectedPosition(mostRecent)
-    }
-  }, [selectedYear, maxYear, selectedPosition])
+  }, [selectedYear, maxYear])
 
   return (
     <div className="space-y-4">
