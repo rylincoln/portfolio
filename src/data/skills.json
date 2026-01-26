@@ -1,0 +1,122 @@
+[
+  {
+    "id": "arcgis",
+    "name": "ArcGIS / Enterprise GIS",
+    "category": "gis-spatial",
+    "proficiency": 5,
+    "yearsUsed": 20,
+    "relatedPositions": ["pasa", "trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "postgis",
+    "name": "PostGIS",
+    "category": "gis-spatial",
+    "proficiency": 5,
+    "yearsUsed": 12,
+    "relatedPositions": ["trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "maplibre",
+    "name": "MapLibre / Web Mapping",
+    "category": "gis-spatial",
+    "proficiency": 4,
+    "yearsUsed": 6,
+    "relatedPositions": ["trc-architect", "trc-director"]
+  },
+  {
+    "id": "aws",
+    "name": "AWS",
+    "category": "cloud-infrastructure",
+    "proficiency": 4,
+    "yearsUsed": 8,
+    "relatedPositions": ["trc-architect", "trc-director"]
+  },
+  {
+    "id": "linux",
+    "name": "Linux Administration",
+    "category": "cloud-infrastructure",
+    "proficiency": 4,
+    "yearsUsed": 15,
+    "relatedPositions": ["pasa", "trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "postgresql",
+    "name": "PostgreSQL",
+    "category": "data-platforms",
+    "proficiency": 5,
+    "yearsUsed": 14,
+    "relatedPositions": ["trc-gis-manager", "fulcrum", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "sql-server",
+    "name": "SQL Server",
+    "category": "data-platforms",
+    "proficiency": 4,
+    "yearsUsed": 12,
+    "relatedPositions": ["pasa", "trc-gis-manager"]
+  },
+  {
+    "id": "etl",
+    "name": "ETL / Data Pipelines",
+    "category": "data-platforms",
+    "proficiency": 5,
+    "yearsUsed": 10,
+    "relatedPositions": ["trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "react",
+    "name": "React",
+    "category": "app-delivery",
+    "proficiency": 5,
+    "yearsUsed": 7,
+    "relatedPositions": ["trc-architect", "trc-director"]
+  },
+  {
+    "id": "typescript",
+    "name": "TypeScript",
+    "category": "app-delivery",
+    "proficiency": 5,
+    "yearsUsed": 6,
+    "relatedPositions": ["trc-architect", "trc-director"]
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js",
+    "category": "app-delivery",
+    "proficiency": 5,
+    "yearsUsed": 8,
+    "relatedPositions": ["fulcrum", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "python",
+    "name": "Python",
+    "category": "app-delivery",
+    "proficiency": 4,
+    "yearsUsed": 10,
+    "relatedPositions": ["pasa", "trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "architecture",
+    "name": "System Architecture",
+    "category": "leadership",
+    "proficiency": 5,
+    "yearsUsed": 10,
+    "relatedPositions": ["trc-architect", "trc-director"]
+  },
+  {
+    "id": "team-leadership",
+    "name": "Technical Leadership",
+    "category": "leadership",
+    "proficiency": 5,
+    "yearsUsed": 12,
+    "relatedPositions": ["pasa", "trc-gis-manager", "trc-architect", "trc-director"]
+  },
+  {
+    "id": "consulting",
+    "name": "Consulting & Enablement",
+    "category": "leadership",
+    "proficiency": 5,
+    "yearsUsed": 15,
+    "relatedPositions": ["pasa", "trc-gis-manager", "fulcrum", "trc-architect", "trc-director"]
+  }
+]
