@@ -87,7 +87,7 @@ export default function MapTimeline() {
 
   return (
     <div className="space-y-4">
-      <div ref={mapContainer} className="h-[400px] rounded-lg overflow-hidden" />
+      <div ref={mapContainer} className="h-[400px] rounded-lg overflow-hidden relative z-0" />
 
       <div className="px-4">
         <div className="flex items-center justify-between mb-2">

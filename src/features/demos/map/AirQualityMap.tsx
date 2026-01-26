@@ -84,7 +84,7 @@ export default function AirQualityMap() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px]">
-      <div ref={mapContainer} className="lg:col-span-2 rounded-lg overflow-hidden" />
+      <div ref={mapContainer} className="lg:col-span-2 rounded-lg overflow-hidden relative z-0" />
 
       <div className="space-y-4">
         <Card>
