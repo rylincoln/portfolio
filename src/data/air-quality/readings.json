@@ -1,0 +1,92 @@
+[
+  {
+    "stationId": "co-denver-camp",
+    "parameter": "pm25",
+    "value": 12.4,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 52,
+    "category": "moderate"
+  },
+  {
+    "stationId": "co-denver-camp",
+    "parameter": "o3",
+    "value": 0.045,
+    "unit": "ppm",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 41,
+    "category": "good"
+  },
+  {
+    "stationId": "co-boulder",
+    "parameter": "pm25",
+    "value": 8.2,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 34,
+    "category": "good"
+  },
+  {
+    "stationId": "co-fort-collins",
+    "parameter": "pm25",
+    "value": 15.7,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 58,
+    "category": "moderate"
+  },
+  {
+    "stationId": "co-durango",
+    "parameter": "pm25",
+    "value": 6.1,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 25,
+    "category": "good"
+  },
+  {
+    "stationId": "co-grand-junction",
+    "parameter": "pm25",
+    "value": 18.3,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 64,
+    "category": "moderate"
+  },
+  {
+    "stationId": "co-colorado-springs",
+    "parameter": "pm25",
+    "value": 9.8,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 41,
+    "category": "good"
+  },
+  {
+    "stationId": "co-alamosa",
+    "parameter": "pm25",
+    "value": 22.1,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 72,
+    "category": "moderate"
+  },
+  {
+    "stationId": "co-cortez",
+    "parameter": "pm25",
+    "value": 7.5,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 31,
+    "category": "good"
+  },
+  {
+    "stationId": "co-aspen",
+    "parameter": "pm25",
+    "value": 4.2,
+    "unit": "µg/m³",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "aqi": 17,
+    "category": "good"
+  }
+]

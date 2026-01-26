@@ -1,0 +1,102 @@
+[
+  {
+    "id": "co-denver-camp",
+    "name": "Denver - CAMP",
+    "city": "Denver",
+    "state": "CO",
+    "coordinates": [-104.9876, 39.7512],
+    "elevation": 1609,
+    "parameters": ["pm25", "pm10", "o3", "no2", "co"],
+    "status": "active"
+  },
+  {
+    "id": "co-boulder",
+    "name": "Boulder",
+    "city": "Boulder",
+    "state": "CO",
+    "coordinates": [-105.2705, 40.0150],
+    "elevation": 1655,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-fort-collins",
+    "name": "Fort Collins - CSU",
+    "city": "Fort Collins",
+    "state": "CO",
+    "coordinates": [-105.0844, 40.5853],
+    "elevation": 1525,
+    "parameters": ["pm25", "pm10", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-pueblo",
+    "name": "Pueblo",
+    "city": "Pueblo",
+    "state": "CO",
+    "coordinates": [-104.6091, 38.2544],
+    "elevation": 1430,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-durango",
+    "name": "Durango",
+    "city": "Durango",
+    "state": "CO",
+    "coordinates": [-107.8801, 37.2753],
+    "elevation": 2003,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-grand-junction",
+    "name": "Grand Junction",
+    "city": "Grand Junction",
+    "state": "CO",
+    "coordinates": [-108.5507, 39.0639],
+    "elevation": 1399,
+    "parameters": ["pm25", "pm10", "o3", "no2"],
+    "status": "active"
+  },
+  {
+    "id": "co-colorado-springs",
+    "name": "Colorado Springs",
+    "city": "Colorado Springs",
+    "state": "CO",
+    "coordinates": [-104.8214, 38.8339],
+    "elevation": 1839,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-alamosa",
+    "name": "Alamosa",
+    "city": "Alamosa",
+    "state": "CO",
+    "coordinates": [-105.8700, 37.4695],
+    "elevation": 2297,
+    "parameters": ["pm25"],
+    "status": "active"
+  },
+  {
+    "id": "co-cortez",
+    "name": "Cortez",
+    "city": "Cortez",
+    "state": "CO",
+    "coordinates": [-108.5859, 37.3489],
+    "elevation": 1888,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  },
+  {
+    "id": "co-aspen",
+    "name": "Aspen",
+    "city": "Aspen",
+    "state": "CO",
+    "coordinates": [-106.8175, 39.1911],
+    "elevation": 2438,
+    "parameters": ["pm25", "o3"],
+    "status": "active"
+  }
+]
