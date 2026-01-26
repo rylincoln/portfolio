@@ -1,0 +1,82 @@
+[
+  {
+    "id": "pasa",
+    "company": "Population and Survey Analysts",
+    "title": "GIS/IT Manager",
+    "location": "College Station, TX",
+    "coordinates": [-96.3344, 30.6280],
+    "startDate": "2006-03",
+    "endDate": "2012-03",
+    "isRemote": false,
+    "accomplishments": [
+      "Managed GIS and IT needs end-to-end",
+      "Supported spatial analysis and data systems",
+      "Led internal operations improvements"
+    ],
+    "skills": ["ArcGIS", "SQL Server", "IT Management", "Spatial Analysis"]
+  },
+  {
+    "id": "trc-gis-manager",
+    "company": "TRC Companies, Inc.",
+    "title": "Geographic Information Systems Manager",
+    "location": "Austin, TX",
+    "coordinates": [-97.7431, 30.2672],
+    "startDate": "2012-03",
+    "endDate": "2018-07",
+    "isRemote": false,
+    "accomplishments": [
+      "Led GIS program delivery and platform operations",
+      "Supported teams with enterprise data management",
+      "Advanced spatial data practices and system reliability"
+    ],
+    "skills": ["ArcGIS Enterprise", "PostgreSQL", "PostGIS", "Team Leadership"]
+  },
+  {
+    "id": "fulcrum",
+    "company": "Fulcrum",
+    "title": "Professional Services Engineer",
+    "location": "Remote",
+    "coordinates": [-107.8801, 37.1853],
+    "startDate": "2018-07",
+    "endDate": "2020-01",
+    "isRemote": true,
+    "accomplishments": [
+      "Implemented client solutions leveraging APIs and spatial data",
+      "Streamlined field-to-office processes",
+      "Built practical, supportable configurations and integrations"
+    ],
+    "skills": ["APIs", "Workflow Automation", "Client Solutions", "Spatial Data"]
+  },
+  {
+    "id": "trc-architect",
+    "company": "TRC Companies, Inc.",
+    "title": "Sr. Digital Solutions Architect",
+    "location": "Remote",
+    "coordinates": [-107.8801, 37.1853],
+    "startDate": "2020-01",
+    "endDate": "2022-10",
+    "isRemote": true,
+    "accomplishments": [
+      "Designed integrated solutions combining GIS, databases, and web apps",
+      "Built repeatable architecture patterns",
+      "Accelerated client delivery"
+    ],
+    "skills": ["Architecture", "React", "Node.js", "PostgreSQL", "AWS"]
+  },
+  {
+    "id": "trc-director",
+    "company": "TRC Companies, Inc.",
+    "title": "Technical Director, EV Digital",
+    "location": "Remote (Bayfield, CO)",
+    "coordinates": [-107.5961, 37.2253],
+    "startDate": "2022-10",
+    "endDate": null,
+    "isRemote": true,
+    "accomplishments": [
+      "Lead architecture and delivery for digital systems",
+      "Drive cross-functional delivery to move prototypes to production",
+      "Own platform patterns for multi-tenant solutions"
+    ],
+    "skills": ["Technical Leadership", "Multi-tenant Architecture", "React", "TypeScript", "AWS", "PostgreSQL"]
+  }
+]
