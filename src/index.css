@@ -59,6 +59,35 @@
   z-index: 0 !important;
 }
 
+/* Custom MapLibre popup styling */
+.station-popup-container .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.station-popup-container .maplibregl-popup-tip {
+  border-top-color: rgb(15, 23, 42);
+  border-bottom-color: rgb(15, 23, 42);
+}
+
+/* Pulse animation for markers with elevated AQI */
+@keyframes marker-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 0 4px currentColor;
+  }
+}
+
+.station-marker-pulse {
+  animation: marker-pulse 2s ease-in-out infinite;
+}
+
 @layer base {
   :root {
     --background: 222 47% 11%;
