@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import careerData from '@/data/career.json'
-import skillsData from '@/data/skills.json'
+import { useQuery } from '@tanstack/react-query'
+import careerFallback from '@/data/career.json'
+import skillsFallback from '@/data/skills.json'
 
 type CareerPosition = {
-  id: string
+  id: number | string
   company: string
   title: string
   location: string
@@ -13,7 +14,7 @@ type CareerPosition = {
 }
 
 type Skill = {
-  id: string
+  id: number | string
   name: string
   category: string
 }
@@ -55,9 +56,35 @@ function groupSkillsByCategory(skills: Skill[]): Record<string, string[]> {
   return grouped
 }
 
+async function fetchCareer(): Promise<CareerPosition[]> {
+  const res = await fetch('/api/career')
+  if (!res.ok) throw new Error('Failed to fetch career data')
+  return res.json()
+}
+
+async function fetchSkills(): Promise<Skill[]> {
+  const res = await fetch('/api/skills')
+  if (!res.ok) throw new Error('Failed to fetch skills data')
+  return res.json()
+}
+
 export default function Landing() {
-  const positions = [...(careerData as CareerPosition[])].reverse()
-  const skillsByCategory = groupSkillsByCategory(skillsData as Skill[])
+  const { data: careerData } = useQuery({
+    queryKey: ['career'],
+    queryFn: fetchCareer,
+    placeholderData: careerFallback as CareerPosition[],
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: skillsData } = useQuery({
+    queryKey: ['skills'],
+    queryFn: fetchSkills,
+    placeholderData: skillsFallback as Skill[],
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const positions = [...(careerData || [])].reverse()
+  const skillsByCategory = groupSkillsByCategory(skillsData || [])
 
   return (
     <div className="container max-w-3xl py-12 px-6">
@@ -102,10 +129,12 @@ export default function Landing() {
         <h2 className="text-2xl font-semibold mb-6 pb-2 border-b border-border">Skills</h2>
         <div className="space-y-2">
           {categoryOrder.map((category) => (
-            <p key={category}>
-              <span className="font-medium">{categoryLabels[category]}:</span>{' '}
-              <span className="text-muted-foreground">{skillsByCategory[category]?.join(', ')}</span>
-            </p>
+            skillsByCategory[category] && (
+              <p key={category}>
+                <span className="font-medium">{categoryLabels[category]}:</span>{' '}
+                <span className="text-muted-foreground">{skillsByCategory[category].join(', ')}</span>
+              </p>
+            )
           ))}
         </div>
       </section>

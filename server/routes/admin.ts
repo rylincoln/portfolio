@@ -6,7 +6,7 @@ const router = Router()
 // Admin authentication middleware
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
-  const secretKey = process.env.ADMIN_SECRET_KEY
+  const secretKey = process.env.ADMIN_SECRET_KEY?.trim()
 
   if (!secretKey) {
     res.status(500).json({ error: 'Admin authentication not configured' })
@@ -18,7 +18,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return
   }
 
-  const token = authHeader.substring(7)
+  const token = authHeader.substring(7).trim()
   if (token !== secretKey) {
     res.status(403).json({ error: 'Invalid credentials' })
     return
@@ -30,13 +30,19 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 // Verify admin credentials
 router.post('/api/admin/verify', (req: Request, res: Response) => {
   const { secretKey } = req.body
+  const adminKey = process.env.ADMIN_SECRET_KEY?.trim()
 
   if (!secretKey) {
     res.status(400).json({ error: 'Secret key required' })
     return
   }
 
-  if (secretKey !== process.env.ADMIN_SECRET_KEY) {
+  if (!adminKey) {
+    res.status(500).json({ error: 'Admin authentication not configured' })
+    return
+  }
+
+  if (secretKey.trim() !== adminKey) {
     res.status(403).json({ error: 'Invalid credentials' })
     return
   }
