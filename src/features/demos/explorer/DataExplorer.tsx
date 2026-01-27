@@ -1,4 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
+import { useQueryStates, parseAsString, parseAsStringLiteral } from 'nuqs'
+import { useQuery } from '@tanstack/react-query'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,76 +23,119 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, Search } from 'lucide-react'
 import stationsData from '@/data/air-quality/stations.json'
 import readingsData from '@/data/air-quality/readings.json'
-import type { Station, Reading } from '@/types/air-quality'
+import type { Station, Reading, APIStation } from '@/types/air-quality'
 
-const stations = stationsData as Station[]
-const readings = readingsData as Reading[]
+const fallbackStations = stationsData as Station[]
+const fallbackReadings = readingsData as Reading[]
 
-interface StationWithReading extends Station {
-  latestReading?: Reading
+// Unified display type
+interface DisplayStation {
+  id: string | number
+  name: string
+  location: string
+  aqi: number
+  category: string
+  pollutant: string
+  status: string
 }
 
-function getStationsWithReadings(): StationWithReading[] {
-  return stations.map(station => ({
-    ...station,
-    latestReading: readings.find(r => r.stationId === station.id && r.parameter === 'pm25'),
+function getLatestReading(stationId: string): Reading | undefined {
+  return fallbackReadings.find(r => r.stationId === stationId && r.parameter === 'pm25')
+}
+
+// Convert fallback data to display format
+function convertFallbackToDisplay(): DisplayStation[] {
+  return fallbackStations.map(station => {
+    const reading = getLatestReading(station.id)
+    return {
+      id: station.id,
+      name: station.name,
+      location: `${station.city}, ${station.state}`,
+      aqi: reading?.aqi ?? 0,
+      category: reading?.category ?? 'good',
+      pollutant: reading?.parameter ?? 'pm25',
+      status: station.status,
+    }
+  })
+}
+
+// Convert API data to display format
+function convertAPIToDisplay(apiStations: APIStation[]): DisplayStation[] {
+  return apiStations.map(station => ({
+    id: station.id,
+    name: station.name,
+    location: station.location,
+    aqi: station.aqi,
+    category: station.category,
+    pollutant: station.pollutant,
+    status: station.status,
   }))
 }
 
+const sortFields = ['name', 'location', 'aqi'] as const
+const sortDirs = ['asc', 'desc'] as const
+
 export default function DataExplorer() {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [sortField, setSortField] = useState<'name' | 'city' | 'aqi'>('name')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [{ q, status, sort, dir }, setFilters] = useQueryStates({
+    q: parseAsString.withDefault(''),
+    status: parseAsString.withDefault('all'),
+    sort: parseAsStringLiteral(sortFields).withDefault('name'),
+    dir: parseAsStringLiteral(sortDirs).withDefault('asc'),
+  })
+
+  const { data: stations = convertFallbackToDisplay() } = useQuery({
+    queryKey: ['stations'],
+    queryFn: async () => {
+      const res = await fetch('/api/stations')
+      if (!res.ok) throw new Error('Failed to fetch stations')
+      const data = await res.json() as APIStation[]
+      return convertAPIToDisplay(data)
+    },
+    staleTime: 5 * 60 * 1000,
+  })
 
   const data = useMemo(() => {
-    let result = getStationsWithReadings()
+    let result = [...stations]
 
-    if (search) {
-      const q = search.toLowerCase()
+    if (q) {
+      const query = q.toLowerCase()
       result = result.filter(
-        s => s.name.toLowerCase().includes(q) || s.city.toLowerCase().includes(q)
+        s => s.name.toLowerCase().includes(query) || s.location.toLowerCase().includes(query)
       )
     }
 
-    if (statusFilter !== 'all') {
-      result = result.filter(s => s.status === statusFilter)
+    if (status !== 'all') {
+      result = result.filter(s => s.status === status)
     }
 
     result.sort((a, b) => {
       let cmp = 0
-      if (sortField === 'name') cmp = a.name.localeCompare(b.name)
-      else if (sortField === 'city') cmp = a.city.localeCompare(b.city)
-      else if (sortField === 'aqi') {
-        const aAqi = a.latestReading?.aqi ?? 0
-        const bAqi = b.latestReading?.aqi ?? 0
-        cmp = aAqi - bAqi
-      }
-      return sortDir === 'asc' ? cmp : -cmp
+      if (sort === 'name') cmp = a.name.localeCompare(b.name)
+      else if (sort === 'location') cmp = a.location.localeCompare(b.location)
+      else if (sort === 'aqi') cmp = a.aqi - b.aqi
+      return dir === 'asc' ? cmp : -cmp
     })
 
     return result
-  }, [search, statusFilter, sortField, sortDir])
+  }, [stations, q, status, sort, dir])
 
-  const handleSort = (field: 'name' | 'city' | 'aqi') => {
-    if (sortField === field) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+  const handleSort = (field: 'name' | 'location' | 'aqi') => {
+    if (sort === field) {
+      setFilters({ dir: dir === 'asc' ? 'desc' : 'asc' })
     } else {
-      setSortField(field)
-      setSortDir('asc')
+      setFilters({ sort: field, dir: 'asc' })
     }
   }
 
   const exportCsv = () => {
-    const headers = ['Name', 'City', 'State', 'Status', 'PM2.5', 'AQI', 'Category']
+    const headers = ['Name', 'Location', 'Status', 'AQI', 'Category', 'Pollutant']
     const rows = data.map(s => [
       s.name,
-      s.city,
-      s.state,
+      s.location,
       s.status,
-      s.latestReading?.value ?? '',
-      s.latestReading?.aqi ?? '',
-      s.latestReading?.category ?? '',
+      s.aqi,
+      s.category,
+      s.pollutant,
     ])
     const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -114,13 +159,13 @@ export default function DataExplorer() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or city..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  value={q}
+                  onChange={e => setFilters({ q: e.target.value || null })}
                   className="pl-9"
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={status} onValueChange={v => setFilters({ status: v === 'all' ? null : v })}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -147,21 +192,21 @@ export default function DataExplorer() {
                   className="cursor-pointer hover:text-foreground"
                   onClick={() => handleSort('name')}
                 >
-                  Name {sortField === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
+                  Name {sort === 'name' && (dir === 'asc' ? '↑' : '↓')}
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:text-foreground"
-                  onClick={() => handleSort('city')}
+                  onClick={() => handleSort('location')}
                 >
-                  City {sortField === 'city' && (sortDir === 'asc' ? '↑' : '↓')}
+                  Location {sort === 'location' && (dir === 'asc' ? '↑' : '↓')}
                 </TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Parameters</TableHead>
+                <TableHead>Pollutant</TableHead>
                 <TableHead
                   className="cursor-pointer hover:text-foreground"
                   onClick={() => handleSort('aqi')}
                 >
-                  PM2.5 / AQI {sortField === 'aqi' && (sortDir === 'asc' ? '↑' : '↓')}
+                  AQI {sort === 'aqi' && (dir === 'asc' ? '↑' : '↓')}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -169,34 +214,24 @@ export default function DataExplorer() {
               {data.map(station => (
                 <TableRow key={station.id}>
                   <TableCell className="font-medium">{station.name}</TableCell>
-                  <TableCell>{station.city}, {station.state}</TableCell>
+                  <TableCell>{station.location}</TableCell>
                   <TableCell>
                     <Badge variant={station.status === 'active' ? 'default' : 'secondary'}>
                       {station.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      {station.parameters.slice(0, 3).map(p => (
-                        <Badge key={p} variant="outline" className="text-xs">
-                          {p}
-                        </Badge>
-                      ))}
-                      {station.parameters.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{station.parameters.length - 3}
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {station.pollutant}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    {station.latestReading ? (
-                      <span>
-                        {station.latestReading.value} {station.latestReading.unit} (AQI {station.latestReading.aqi})
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">No data</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span>{station.aqi}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {station.category}
+                      </Badge>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

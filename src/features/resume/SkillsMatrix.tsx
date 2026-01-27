@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useQueryState, parseAsStringLiteral } from 'nuqs'
+import { useQuery } from '@tanstack/react-query'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import skillsData from '@/data/skills.json'
+import skillsFallback from '@/data/skills.json'
 import type { Skill, SkillCategory } from '@/types/skills'
 
-const skills = skillsData as Skill[]
+const skillCategories = ['gis-spatial', 'cloud-infrastructure', 'data-platforms', 'app-delivery', 'leadership'] as const
 
 const categoryLabels: Record<SkillCategory, string> = {
   'gis-spatial': 'GIS / Spatial',
@@ -27,8 +29,19 @@ interface SkillsMatrixProps {
 }
 
 export default function SkillsMatrix({ onSkillSelect }: SkillsMatrixProps) {
-  const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(null)
+  const [category, setCategory] = useQueryState('category', parseAsStringLiteral(skillCategories))
+  const selectedCategory = category as SkillCategory | null
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
+
+  const { data: skills = skillsFallback as Skill[] } = useQuery({
+    queryKey: ['skills'],
+    queryFn: async () => {
+      const res = await fetch('/api/skills')
+      if (!res.ok) throw new Error('Failed to fetch skills')
+      return res.json() as Promise<Skill[]>
+    },
+    staleTime: 5 * 60 * 1000,
+  })
 
   const categories = Object.keys(categoryLabels) as SkillCategory[]
   const filteredSkills = selectedCategory
@@ -50,7 +63,7 @@ export default function SkillsMatrix({ onSkillSelect }: SkillsMatrixProps) {
             'cursor-pointer',
             !selectedCategory && 'bg-primary/20 text-primary'
           )}
-          onClick={() => setSelectedCategory(null)}
+          onClick={() => setCategory(null)}
         >
           All
         </Badge>
@@ -62,7 +75,7 @@ export default function SkillsMatrix({ onSkillSelect }: SkillsMatrixProps) {
               'cursor-pointer',
               selectedCategory === cat && categoryColors[cat]
             )}
-            onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+            onClick={() => setCategory(selectedCategory === cat ? null : cat)}
           >
             {categoryLabels[cat]}
           </Badge>
@@ -93,9 +106,11 @@ export default function SkillsMatrix({ onSkillSelect }: SkillsMatrixProps) {
                   />
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground">
-                {skill.yearsUsed}y
-              </span>
+              {skill.yearsUsed && (
+                <span className="text-xs text-muted-foreground">
+                  {skill.yearsUsed}y
+                </span>
+              )}
             </div>
           </div>
         ))}

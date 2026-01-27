@@ -19,4 +19,17 @@ export interface Reading {
   category: 'good' | 'moderate' | 'unhealthy-sensitive' | 'unhealthy' | 'very-unhealthy' | 'hazardous'
 }
 
+// API station format (from database) - simpler, with embedded AQI
+export interface APIStation {
+  id: number
+  name: string
+  location: string
+  coordinates: [number, number]
+  aqi: number
+  category: string
+  pollutant: string
+  lastUpdated: string
+  status: string
+}
+
 export type Pollutant = 'pm25' | 'pm10' | 'o3' | 'no2' | 'so2' | 'co'

@@ -1,27 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
+import { useQueryState, parseAsInteger } from 'nuqs'
+import { useQuery } from '@tanstack/react-query'
 import maplibregl from 'maplibre-gl'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
-import careerData from '@/data/career.json'
 import type { CareerPosition } from '@/types/career'
-
-const positions = careerData as CareerPosition[]
+import careerFallback from '@/data/career.json'
 
 function getYearFromDate(dateStr: string): number {
   return parseInt(dateStr.split('-')[0], 10)
-}
-
-function getActivePositions(year: number, maxYear: number): CareerPosition[] {
-  return positions.filter(p => {
-    const start = getYearFromDate(p.startDate)
-    const end = p.endDate ? getYearFromDate(p.endDate) : maxYear
-    return year >= start && year <= end
-  })
-}
-
-function getInitialPosition(maxYear: number): CareerPosition | null {
-  const active = getActivePositions(maxYear, maxYear)
-  return active.length > 0 ? active[active.length - 1] : null
 }
 
 export default function MapTimeline() {
@@ -29,11 +16,47 @@ export default function MapTimeline() {
   const map = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
 
-  const minYear = Math.min(...positions.map(p => getYearFromDate(p.startDate)))
+  const { data: positions = careerFallback as CareerPosition[] } = useQuery({
+    queryKey: ['career'],
+    queryFn: async () => {
+      const res = await fetch('/api/career')
+      if (!res.ok) throw new Error('Failed to fetch career data')
+      return res.json() as Promise<CareerPosition[]>
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
   const maxYear = new Date().getFullYear()
 
-  const [selectedYear, setSelectedYear] = useState(maxYear)
-  const [selectedPosition, setSelectedPosition] = useState<CareerPosition | null>(() => getInitialPosition(maxYear))
+  const minYear = positions.length > 0
+    ? Math.min(...positions.map(p => getYearFromDate(p.startDate)))
+    : 2006
+
+  const [year, setYear] = useQueryState('year', parseAsInteger.withDefault(maxYear))
+  // Clamp year to valid range
+  const selectedYear = Math.max(minYear, Math.min(maxYear, year))
+  const [selectedPosition, setSelectedPosition] = useState<CareerPosition | null>(null)
+
+  // Get positions active in selected year
+  const getActivePositions = useMemo(() => {
+    return (year: number) => {
+      return positions.filter(p => {
+        const start = getYearFromDate(p.startDate)
+        const end = p.endDate ? getYearFromDate(p.endDate) : maxYear
+        return year >= start && year <= end
+      })
+    }
+  }, [positions, maxYear])
+
+  // Compute initial selected position when positions change
+  const initialPosition = useMemo(() => {
+    if (positions.length === 0) return null
+    const active = getActivePositions(maxYear)
+    return active.length > 0 ? active[active.length - 1] : null
+  }, [positions, getActivePositions, maxYear])
+
+  // Sync selected position with initial when it changes and no position is selected
+  const currentPosition = selectedPosition ?? initialPosition
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
@@ -61,7 +84,7 @@ export default function MapTimeline() {
     markersRef.current = []
 
     // Get positions active in selected year
-    const activePositions = getActivePositions(selectedYear, maxYear)
+    const activePositions = getActivePositions(selectedYear)
 
     // Add markers for active positions
     activePositions.forEach(position => {
@@ -83,7 +106,7 @@ export default function MapTimeline() {
 
       markersRef.current.push(marker)
     })
-  }, [selectedYear, maxYear])
+  }, [selectedYear, getActivePositions])
 
   return (
     <div className="space-y-4">
@@ -100,24 +123,24 @@ export default function MapTimeline() {
           min={minYear}
           max={maxYear}
           step={1}
-          onValueChange={([value]) => setSelectedYear(value)}
+          onValueChange={([value]) => setYear(value)}
         />
       </div>
 
-      {selectedPosition && (
+      {currentPosition && (
         <Card>
           <CardHeader>
-            <CardTitle>{selectedPosition.title}</CardTitle>
+            <CardTitle>{currentPosition.title}</CardTitle>
             <CardDescription>
-              {selectedPosition.company} | {selectedPosition.location}
+              {currentPosition.company} | {currentPosition.location}
             </CardDescription>
             <CardDescription>
-              {selectedPosition.startDate} - {selectedPosition.endDate ?? 'Present'}
+              {currentPosition.startDate} - {currentPosition.endDate ?? 'Present'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              {selectedPosition.accomplishments.map((a, i) => (
+              {currentPosition.accomplishments.map((a, i) => (
                 <li key={i}>{a}</li>
               ))}
             </ul>

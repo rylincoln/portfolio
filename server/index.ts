@@ -9,6 +9,7 @@ import careerRouter from './routes/career.js'
 import skillsRouter from './routes/skills.js'
 import stationsRouter from './routes/stations.js'
 import adminRouter from './routes/admin.js'
+import aqicnRouter from './routes/aqicn.js'
 import { initializeDatabase } from './db/schema.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -31,6 +32,7 @@ app.use(careerRouter)
 app.use(skillsRouter)
 app.use(stationsRouter)
 app.use(adminRouter)
+app.use(aqicnRouter)
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

@@ -24,6 +24,8 @@ export default defineConfig([
         'warn',
         { allowConstantExport: true },
       ],
+      // Allow setState in effects for data fetching patterns
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])
