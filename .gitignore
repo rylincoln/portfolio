@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 *.njsproj
 *.sln
 *.sw?
+
+
+docs/*
