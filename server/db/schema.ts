@@ -56,6 +56,25 @@ export async function initializeDatabase() {
     )
   `)
 
+  // Education table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS education (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      degree TEXT NOT NULL,
+      field_of_study TEXT NOT NULL,
+      institution TEXT NOT NULL,
+      location TEXT,
+      start_date TEXT,
+      end_date TEXT,
+      gpa TEXT,
+      coordinates_lng REAL,
+      coordinates_lat REAL,
+      accomplishments TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
   console.log('Database schema initialized')
 }
 
@@ -205,6 +224,17 @@ export async function seedDatabase() {
       sql: `INSERT INTO air_quality_stations (name, location, coordinates_lng, coordinates_lat, aqi, category, pollutant, last_updated, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [station.name, station.location, station.lng, station.lat, station.aqi, station.category, station.pollutant, station.last_updated, station.status]
+    })
+  }
+
+  // Seed education
+  const existingEducation = await db.execute('SELECT COUNT(*) as count FROM education')
+  const educationCount = existingEducation.rows[0]?.count as number
+  if (educationCount === 0) {
+    await db.execute({
+      sql: `INSERT INTO education (degree, field_of_study, institution, location, start_date, end_date, gpa, coordinates_lng, coordinates_lat, accomplishments)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: ['B.S.', 'Environmental Geoscience', 'Texas A&M University', 'College Station, TX', '2002-08', '2006-05', null, -96.3344, 30.6280, '[]']
     })
   }
 
