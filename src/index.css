@@ -156,3 +156,12 @@
 .focus-ring-fade {
   transition: box-shadow 150ms ease, border-color 150ms ease;
 }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-cursor-blink,
+  .animate-shake,
+  .animate-pulse-subtle {
+    animation: none;
+  }
+}

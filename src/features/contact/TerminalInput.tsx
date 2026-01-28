@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useId } from 'react'
 import { cn } from '@/lib/utils'
 
 interface TerminalInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -8,10 +8,14 @@ interface TerminalInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 }
 
 export const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(
-  ({ label, isActive, hasError, className, ...props }, ref) => {
+  ({ label, isActive, hasError, className, id, ...props }, ref) => {
+    const generatedId = useId()
+    const inputId = id || generatedId
+
     return (
       <div className={cn('flex items-center gap-3', hasError && 'animate-shake')}>
         <label
+          htmlFor={inputId}
           className={cn(
             'font-mono text-sm flex items-center gap-0.5 min-w-[100px] transition-colors duration-150',
             isActive ? 'text-primary' : 'text-muted-foreground',
@@ -26,6 +30,8 @@ export const TerminalInput = forwardRef<HTMLInputElement, TerminalInputProps>(
         </label>
         <input
           ref={ref}
+          id={inputId}
+          aria-invalid={hasError || undefined}
           className={cn(
             'flex-1 h-10 px-3 py-2 font-mono text-sm',
             'bg-secondary/50 rounded-md border-0',
