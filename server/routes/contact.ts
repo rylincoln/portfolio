@@ -54,7 +54,7 @@ router.post('/api/contact', async (req: Request, res: Response) => {
 
   // Check for Resend API key
   const resendApiKey = process.env.RESEND_API_KEY
-  const contactEmail = process.env.CONTACT_EMAIL || 'ry@rlblais.org'
+  const contactEmail = process.env.CONTACT_EMAIL || 'rylincoln@gmail.com'
 
   if (!resendApiKey) {
     console.error('RESEND_API_KEY not configured')
@@ -65,7 +65,7 @@ router.post('/api/contact', async (req: Request, res: Response) => {
   try {
     const resend = new Resend(resendApiKey)
 
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: 'Portfolio Contact <onboarding@resend.dev>',
       to: contactEmail,
       subject: `Portfolio Contact: ${name}`,
@@ -73,6 +73,13 @@ router.post('/api/contact', async (req: Request, res: Response) => {
       replyTo: email,
     })
 
+    if (error) {
+      console.error('Resend API error:', error)
+      res.status(500).json({ error: 'Failed to send message' })
+      return
+    }
+
+    console.log('Email sent successfully, id:', data?.id)
     res.json({ success: true })
   } catch (error) {
     console.error('Failed to send email:', error)
