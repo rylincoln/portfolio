@@ -31,7 +31,7 @@ import { Trash2, Plus, Database, LogOut, Pencil, MapPin, Loader2, Check } from '
 // Types & Schemas
 // ============================================================================
 
-const adminTabs = ['career', 'skills', 'stations'] as const
+const adminTabs = ['career', 'education', 'skills', 'stations'] as const
 
 const careerSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
@@ -42,6 +42,19 @@ const careerSchema = z.object({
   lng: z.string().refine(v => !isNaN(parseFloat(v)), 'Must be a valid number'),
   lat: z.string().refine(v => !isNaN(parseFloat(v)), 'Must be a valid number'),
   accomplishments: z.string().min(1, 'Add at least one accomplishment'),
+})
+
+const educationSchema = z.object({
+  degree: z.string().min(1, 'Degree is required'),
+  fieldOfStudy: z.string().min(1, 'Field of study is required'),
+  institution: z.string().min(1, 'Institution is required'),
+  location: z.string().optional(),
+  startDate: z.string().regex(/^\d{4}-\d{2}$/, 'Use format YYYY-MM').or(z.literal('')).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}$/, 'Use format YYYY-MM').or(z.literal('')).optional(),
+  gpa: z.string().optional(),
+  lng: z.string().refine(v => !v || !isNaN(parseFloat(v)), 'Must be a valid number').optional(),
+  lat: z.string().refine(v => !v || !isNaN(parseFloat(v)), 'Must be a valid number').optional(),
+  accomplishments: z.string().optional(),
 })
 
 const skillSchema = z.object({
@@ -67,6 +80,7 @@ const stationSchema = z.object({
 type CareerFormValues = z.infer<typeof careerSchema>
 type SkillFormValues = z.infer<typeof skillSchema>
 type StationFormValues = z.infer<typeof stationSchema>
+type EducationFormValues = z.infer<typeof educationSchema>
 
 interface CareerPosition {
   id: number
@@ -96,6 +110,19 @@ interface Station {
   pollutant: string
   lastUpdated: string
   status: string
+}
+
+interface EducationEntry {
+  id: number
+  degree: string
+  fieldOfStudy: string
+  institution: string
+  location?: string
+  startDate?: string
+  endDate?: string
+  gpa?: string
+  coordinates?: [number, number]
+  accomplishments?: string[]
 }
 
 const skillCategories = [
@@ -137,16 +164,19 @@ export default function Admin() {
   const [careers, setCareers] = useState<CareerPosition[]>([])
   const [skills, setSkills] = useState<Skill[]>([])
   const [stations, setStations] = useState<Station[]>([])
+  const [education, setEducation] = useState<EducationEntry[]>([])
 
   const loadData = async () => {
     try {
-      const [careerRes, skillsRes, stationsRes] = await Promise.all([
+      const [careerRes, educationRes, skillsRes, stationsRes] = await Promise.all([
         fetch('/api/career'),
+        fetch('/api/education'),
         fetch('/api/skills'),
         fetch('/api/stations')
       ])
 
       if (careerRes.ok) setCareers(await careerRes.json())
+      if (educationRes.ok) setEducation(await educationRes.json())
       if (skillsRes.ok) setSkills(await skillsRes.json())
       if (stationsRes.ok) setStations(await stationsRes.json())
     } catch (err) {
@@ -234,6 +264,19 @@ export default function Admin() {
     }
   }
 
+  const deleteEducation = async (id: number) => {
+    if (!confirm('Delete this education entry?')) return
+    try {
+      const res = await fetch(`/api/admin/education/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${secretKey}` }
+      })
+      if (res.ok) setEducation(education.filter(e => e.id !== id))
+    } catch (err) {
+      console.error('Failed to delete:', err)
+    }
+  }
+
   const deleteStation = async (id: number) => {
     if (!confirm('Delete this station?')) return
     try {
@@ -303,6 +346,7 @@ export default function Admin() {
       <Tabs value={activeTab} onValueChange={v => setActiveTab(v as typeof activeTab)}>
         <TabsList className="mb-6">
           <TabsTrigger value="career">Career ({careers.length})</TabsTrigger>
+          <TabsTrigger value="education">Education ({education.length})</TabsTrigger>
           <TabsTrigger value="skills">Skills ({skills.length})</TabsTrigger>
           <TabsTrigger value="stations">Stations ({stations.length})</TabsTrigger>
         </TabsList>
@@ -316,6 +360,21 @@ export default function Admin() {
                 career={career}
                 secretKey={secretKey}
                 onDelete={() => deleteCareer(career.id)}
+                onUpdate={loadData}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="education" className="space-y-6">
+          <EducationForm secretKey={secretKey} onSuccess={loadData} />
+          <div className="space-y-4">
+            {education.map(entry => (
+              <EducationCard
+                key={entry.id}
+                education={entry}
+                secretKey={secretKey}
+                onDelete={() => deleteEducation(entry.id)}
                 onUpdate={loadData}
               />
             ))}
@@ -769,6 +828,500 @@ function CareerCard({ career, secretKey, onDelete, onUpdate }: {
           {career.accomplishments.map((a, i) => <li key={i}>{a}</li>)}
         </ul>
       </CardContent>
+    </Card>
+  )
+}
+
+// ============================================================================
+// Education Form & Card
+// ============================================================================
+
+function EducationForm({ secretKey, onSuccess }: { secretKey: string; onSuccess: () => void }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const form = useForm<EducationFormValues>({
+    resolver: zodResolver(educationSchema),
+    defaultValues: {
+      degree: '',
+      fieldOfStudy: '',
+      institution: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      gpa: '',
+      lng: '',
+      lat: '',
+      accomplishments: '',
+    },
+  })
+
+  const onSubmit = async (values: EducationFormValues) => {
+    setIsSubmitting(true)
+    try {
+      const hasCoords = values.lng && values.lat
+      const res = await fetch('/api/admin/education', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${secretKey}`
+        },
+        body: JSON.stringify({
+          degree: values.degree,
+          fieldOfStudy: values.fieldOfStudy,
+          institution: values.institution,
+          location: values.location || null,
+          startDate: values.startDate || null,
+          endDate: values.endDate || null,
+          gpa: values.gpa || null,
+          coordinates: hasCoords ? [parseFloat(values.lng!), parseFloat(values.lat!)] : null,
+          accomplishments: values.accomplishments
+            ? values.accomplishments.split('\n').filter(a => a.trim())
+            : []
+        })
+      })
+
+      if (res.ok) {
+        form.reset()
+        setIsOpen(false)
+        onSuccess()
+      }
+    } catch (err) {
+      console.error('Failed to create:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!isOpen) {
+    return (
+      <Button onClick={() => setIsOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" /> Add Education
+      </Button>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Add Education</CardTitle>
+        <CardDescription>Add a degree or certification</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="degree"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Degree</FormLabel>
+                        <FormControl>
+                          <Input placeholder="B.S." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="fieldOfStudy"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Field of Study</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Environmental Geoscience" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="institution"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Institution</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Texas A&M University" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="College Station, TX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input placeholder="2006-08" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input placeholder="2010-05" {...field} />
+                        </FormControl>
+                        <FormDescription>Empty = in progress</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gpa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GPA</FormLabel>
+                        <FormControl>
+                          <Input placeholder="3.8" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="accomplishments"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Honors & Accomplishments</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="One per line..."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>Enter one accomplishment per line</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div>
+                <LocationPicker
+                  lng={form.watch('lng') || ''}
+                  lat={form.watch('lat') || ''}
+                  onCoordinatesChange={(lng, lat) => {
+                    form.setValue('lng', lng, { shouldValidate: true })
+                    form.setValue('lat', lat, { shouldValidate: true })
+                  }}
+                  locationName={form.watch('location') || ''}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4 border-t">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Education
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
+}
+
+function EducationCard({ education, secretKey, onDelete, onUpdate }: {
+  education: EducationEntry
+  secretKey: string
+  onDelete: () => void
+  onUpdate: () => void
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const form = useForm<EducationFormValues>({
+    resolver: zodResolver(educationSchema),
+    defaultValues: {
+      degree: education.degree,
+      fieldOfStudy: education.fieldOfStudy,
+      institution: education.institution,
+      location: education.location || '',
+      startDate: education.startDate || '',
+      endDate: education.endDate || '',
+      gpa: education.gpa || '',
+      lng: education.coordinates ? education.coordinates[0].toString() : '',
+      lat: education.coordinates ? education.coordinates[1].toString() : '',
+      accomplishments: education.accomplishments?.join('\n') || '',
+    },
+  })
+
+  const onSubmit = async (values: EducationFormValues) => {
+    setIsSubmitting(true)
+    try {
+      const hasCoords = values.lng && values.lat
+      const res = await fetch(`/api/admin/education/${education.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${secretKey}`
+        },
+        body: JSON.stringify({
+          degree: values.degree,
+          fieldOfStudy: values.fieldOfStudy,
+          institution: values.institution,
+          location: values.location || null,
+          startDate: values.startDate || null,
+          endDate: values.endDate || null,
+          gpa: values.gpa || null,
+          coordinates: hasCoords ? [parseFloat(values.lng!), parseFloat(values.lat!)] : null,
+          accomplishments: values.accomplishments
+            ? values.accomplishments.split('\n').filter(a => a.trim())
+            : []
+        })
+      })
+
+      if (res.ok) {
+        setIsEditing(false)
+        onUpdate()
+      }
+    } catch (err) {
+      console.error('Failed to update:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Education</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="degree"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Degree</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="fieldOfStudy"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel>Field of Study</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="institution"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Institution</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Date</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Date</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Empty = in progress" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="gpa"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GPA</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="accomplishments"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Honors & Accomplishments</FormLabel>
+                        <FormControl>
+                          <Textarea rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <LocationPicker
+                    lng={form.watch('lng') || ''}
+                    lat={form.watch('lat') || ''}
+                    onCoordinatesChange={(lng, lat) => {
+                      form.setValue('lng', lng, { shouldValidate: true })
+                      form.setValue('lat', lat, { shouldValidate: true })
+                    }}
+                    locationName={form.watch('location') || ''}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between">
+          <div>
+            <CardTitle className="text-lg">{education.degree} {education.fieldOfStudy}</CardTitle>
+            <CardDescription>{education.institution}{education.location ? ` | ${education.location}` : ''}</CardDescription>
+            <CardDescription className="flex items-center gap-4">
+              {education.startDate && education.endDate && (
+                <span>{education.startDate} - {education.endDate}</span>
+              )}
+              {education.endDate && !education.startDate && (
+                <span>{education.endDate}</span>
+              )}
+              {education.gpa && <span>GPA: {education.gpa}</span>}
+              {education.coordinates && (
+                <span className="flex items-center gap-1 font-mono text-xs">
+                  <MapPin className="h-3 w-3" />
+                  {education.coordinates[0].toFixed(2)}, {education.coordinates[1].toFixed(2)}
+                </span>
+              )}
+            </CardDescription>
+          </div>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onDelete}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      {education.accomplishments && education.accomplishments.length > 0 && (
+        <CardContent>
+          <ul className="list-disc list-inside text-sm text-muted-foreground">
+            {education.accomplishments.map((a, i) => <li key={i}>{a}</li>)}
+          </ul>
+        </CardContent>
+      )}
     </Card>
   )
 }
