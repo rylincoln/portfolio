@@ -110,10 +110,7 @@ export default function Landing() {
   const skillsByCategory = groupSkillsByCategory(skillsData || [])
 
   const handlePositionHover = (position: CareerPosition) => {
-    setFocus({
-      coordinates: position.coordinates,
-      label: position.location,
-    })
+    setFocus(position.coordinates, position.location)
   }
 
   const handlePositionLeave = () => {
