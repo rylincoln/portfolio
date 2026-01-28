@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Mail, Linkedin, Github, MapPin, Calendar } from "lucide-react";
 import careerFallback from "@/data/career.json";
 import skillsFallback from "@/data/skills.json";
+import educationFallback from "@/data/education.json";
 import { ExperienceTimeline } from "@/components/ui/experience-timeline";
 import { SkillsChart } from "@/components/ui/skills-chart";
 import { SectionConnector } from "@/components/ui/section-connector";
@@ -23,6 +24,19 @@ type Skill = {
   id: number | string;
   name: string;
   category: string;
+};
+
+type EducationEntry = {
+  id: number;
+  degree: string;
+  fieldOfStudy: string;
+  institution: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  gpa?: string;
+  coordinates?: [number, number];
+  accomplishments?: string[];
 };
 
 const categoryLabels: Record<string, string> = {
@@ -80,6 +94,12 @@ async function fetchSkills(): Promise<Skill[]> {
   return res.json();
 }
 
+async function fetchEducation(): Promise<EducationEntry[]> {
+  const res = await fetch("/api/education");
+  if (!res.ok) throw new Error("Failed to fetch education data");
+  return res.json();
+}
+
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="text-2xl font-semibold pl-4 border-l-2 border-primary mb-8">
@@ -110,6 +130,13 @@ export default function Landing() {
     queryKey: ["skills"],
     queryFn: fetchSkills,
     placeholderData: skillsFallback as Skill[],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: educationData } = useQuery({
+    queryKey: ["education"],
+    queryFn: fetchEducation,
+    placeholderData: educationFallback as EducationEntry[],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -228,11 +255,51 @@ export default function Landing() {
       {/* Education */}
       <section className="mb-16">
         <SectionHeader>Education</SectionHeader>
-        <div>
-          <p className="text-lg font-semibold">B.S. Environmental Geoscience</p>
-          <p className="font-mono text-sm text-muted-foreground mt-1">
-            Texas A&M University · 2010
-          </p>
+        <div className="space-y-6">
+          {(educationData || []).map((entry) => (
+            <article
+              key={entry.id}
+              onMouseEnter={() =>
+                entry.coordinates &&
+                setFocus(entry.coordinates, entry.institution)
+              }
+              onMouseLeave={handlePositionLeave}
+              className="cursor-default"
+            >
+              <p className="text-lg font-semibold">
+                {entry.degree} {entry.fieldOfStudy}
+              </p>
+              <div className="flex items-center gap-4 mt-1 font-mono text-sm text-muted-foreground">
+                <span>{entry.institution}</span>
+                {entry.endDate && (
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {entry.endDate.split("-")[0]}
+                  </span>
+                )}
+                {entry.location && (
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {entry.location}
+                  </span>
+                )}
+              </div>
+              {entry.gpa && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  GPA: {entry.gpa}
+                </p>
+              )}
+              {entry.accomplishments && entry.accomplishments.length > 0 && (
+                <ul className="list-disc list-outside ml-5 space-y-1 mt-2 text-muted-foreground">
+                  {entry.accomplishments.map((a) => (
+                    <li key={a} className="pl-1">
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
         </div>
       </section>
 
