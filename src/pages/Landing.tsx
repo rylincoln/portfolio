@@ -136,7 +136,7 @@ export default function Landing() {
   const { data: educationData } = useQuery({
     queryKey: ["education"],
     queryFn: fetchEducation,
-    placeholderData: educationFallback as EducationEntry[],
+    placeholderData: educationFallback as unknown as EducationEntry[],
     staleTime: 5 * 60 * 1000,
   });
 
