@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
+import { cn } from '@/lib/utils'
 
-export function SectionConnector() {
+export function SectionConnector({ className }: { className?: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export function SectionConnector() {
   }, [])
 
   return (
-    <div className="flex justify-center my-2">
+    <div className={cn("flex justify-center my-2", className)}>
       <svg ref={svgRef} className="pointer-events-none" />
     </div>
   )
