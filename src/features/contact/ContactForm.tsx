@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Mail,
   Linkedin,
   Github,
   Send,
