@@ -1,11 +1,15 @@
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
+import { GlobeBackground } from '@/components/ui/globe-background'
+import { GlobeFocusProvider } from '@/contexts/globe-focus'
 
 export default function Layout() {
   return (
-    <div className="relative min-h-screen flex flex-col">
+    <GlobeFocusProvider>
+      <div className="relative min-h-screen flex flex-col overflow-x-hidden">
+        <GlobeBackground />
       <Header />
-      <main className="flex-1 relative z-0 isolate">
+      <main className="flex-1 relative">
         <Outlet />
       </main>
       <footer className="border-t border-border/40 py-6 md:py-0">
@@ -15,6 +19,7 @@ export default function Layout() {
           </p>
         </div>
       </footer>
-    </div>
+      </div>
+    </GlobeFocusProvider>
   )
 }
