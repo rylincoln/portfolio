@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Mail, Linkedin, Github, MapPin, Calendar } from "lucide-react";
+import { Mail, Linkedin, Github, MapPin, Calendar, Download } from "lucide-react";
 import careerFallback from "@/data/career.json";
 import skillsFallback from "@/data/skills.json";
+import educationFallback from "@/data/education.json";
+import { generateResumePDF } from "@/lib/resume-pdf";
 import { ExperienceTimeline } from "@/components/ui/experience-timeline";
 import { SkillsChart } from "@/components/ui/skills-chart";
 import { SectionConnector } from "@/components/ui/section-connector";
@@ -23,6 +25,19 @@ type Skill = {
   id: number | string;
   name: string;
   category: string;
+};
+
+type EducationEntry = {
+  id: number;
+  degree: string;
+  fieldOfStudy: string;
+  institution: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  gpa?: string;
+  coordinates?: [number, number];
+  accomplishments?: string[];
 };
 
 const categoryLabels: Record<string, string> = {
@@ -80,6 +95,12 @@ async function fetchSkills(): Promise<Skill[]> {
   return res.json();
 }
 
+async function fetchEducation(): Promise<EducationEntry[]> {
+  const res = await fetch("/api/education");
+  if (!res.ok) throw new Error("Failed to fetch education data");
+  return res.json();
+}
+
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="text-2xl font-semibold pl-4 border-l-2 border-primary mb-8">
@@ -113,6 +134,13 @@ export default function Landing() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: educationData } = useQuery({
+    queryKey: ["education"],
+    queryFn: fetchEducation,
+    placeholderData: educationFallback as unknown as EducationEntry[],
+    staleTime: 5 * 60 * 1000,
+  });
+
   const positions = [...(careerData || [])].reverse();
   const skillsByCategory = groupSkillsByCategory(skillsData || []);
 
@@ -132,8 +160,27 @@ export default function Landing() {
       count: skillsByCategory[cat].length,
     }));
 
+  const handleDownloadPDF = () => {
+    generateResumePDF({
+      positions,
+      skills: skillsData || [],
+      education: educationData || [],
+    });
+  };
+
   return (
     <div className="container max-w-3xl py-16 md:py-20 px-6">
+      {/* Download PDF Button */}
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={handleDownloadPDF}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-mono text-muted-foreground border border-border rounded hover:border-primary hover:text-primary transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Download Resume
+        </button>
+      </div>
+
       {/* Name & Title */}
       <header className="mb-16">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">

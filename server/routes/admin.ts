@@ -149,7 +149,7 @@ router.post('/api/admin/skills', requireAdmin, async (req: Request, res: Respons
       args: [name, category, proficiency]
     })
 
-    res.json({ success: true, id: result.lastInsertRowid })
+    res.json({ success: true, id: Number(result.lastInsertRowid) })
   } catch (error) {
     console.error('Error creating skill:', error)
     res.status(500).json({ error: 'Failed to create skill' })
@@ -196,7 +196,7 @@ router.post('/api/admin/stations', requireAdmin, async (req: Request, res: Respo
       args: [name, location, coordinates[0], coordinates[1], aqi, category, pollutant, lastUpdated, status || 'active']
     })
 
-    res.json({ success: true, id: result.lastInsertRowid })
+    res.json({ success: true, id: Number(result.lastInsertRowid) })
   } catch (error) {
     console.error('Error creating station:', error)
     res.status(500).json({ error: 'Failed to create station' })
@@ -257,7 +257,7 @@ router.post('/api/admin/education', requireAdmin, async (req: Request, res: Resp
       ]
     })
 
-    res.json({ success: true, id: result.lastInsertRowid })
+    res.json({ success: true, id: Number(result.lastInsertRowid) })
   } catch (error) {
     console.error('Error creating education:', error)
     res.status(500).json({ error: 'Failed to create education entry' })
