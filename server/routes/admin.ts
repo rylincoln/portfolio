@@ -234,4 +234,79 @@ router.delete('/api/admin/stations/:id', requireAdmin, async (req: Request, res:
   }
 })
 
+// === Education Routes ===
+
+router.post('/api/admin/education', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { degree, fieldOfStudy, institution, location, startDate, endDate, gpa, coordinates, accomplishments } = req.body
+
+    const result = await db.execute({
+      sql: `INSERT INTO education (degree, field_of_study, institution, location, start_date, end_date, gpa, coordinates_lng, coordinates_lat, accomplishments)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        degree,
+        fieldOfStudy,
+        institution,
+        location || null,
+        startDate || null,
+        endDate || null,
+        gpa || null,
+        coordinates ? coordinates[0] : null,
+        coordinates ? coordinates[1] : null,
+        accomplishments ? JSON.stringify(accomplishments) : '[]'
+      ]
+    })
+
+    res.json({ success: true, id: result.lastInsertRowid })
+  } catch (error) {
+    console.error('Error creating education:', error)
+    res.status(500).json({ error: 'Failed to create education entry' })
+  }
+})
+
+router.put('/api/admin/education/:id', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string, 10)
+    const { degree, fieldOfStudy, institution, location, startDate, endDate, gpa, coordinates, accomplishments } = req.body
+
+    await db.execute({
+      sql: `UPDATE education
+            SET degree = ?, field_of_study = ?, institution = ?, location = ?,
+                start_date = ?, end_date = ?, gpa = ?,
+                coordinates_lng = ?, coordinates_lat = ?,
+                accomplishments = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?`,
+      args: [
+        degree,
+        fieldOfStudy,
+        institution,
+        location || null,
+        startDate || null,
+        endDate || null,
+        gpa || null,
+        coordinates ? coordinates[0] : null,
+        coordinates ? coordinates[1] : null,
+        accomplishments ? JSON.stringify(accomplishments) : '[]',
+        id
+      ]
+    })
+
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error updating education:', error)
+    res.status(500).json({ error: 'Failed to update education entry' })
+  }
+})
+
+router.delete('/api/admin/education/:id', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string, 10)
+    await db.execute({ sql: 'DELETE FROM education WHERE id = ?', args: [id] })
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting education:', error)
+    res.status(500).json({ error: 'Failed to delete education entry' })
+  }
+})
+
 export default router
