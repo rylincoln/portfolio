@@ -8,6 +8,7 @@ import contactRouter from './routes/contact.js'
 import careerRouter from './routes/career.js'
 import skillsRouter from './routes/skills.js'
 import stationsRouter from './routes/stations.js'
+import educationRouter from './routes/education.js'
 import adminRouter from './routes/admin.js'
 import aqicnRouter from './routes/aqicn.js'
 import { initializeDatabase } from './db/schema.js'
@@ -31,6 +32,7 @@ app.use(contactRouter)
 app.use(careerRouter)
 app.use(skillsRouter)
 app.use(stationsRouter)
+app.use(educationRouter)
 app.use(adminRouter)
 app.use(aqicnRouter)
 
